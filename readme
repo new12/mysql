@@ -1,0 +1,22 @@
+docker run --name master --rm \
+-v /Users/didi/docker/mysql/master/conf:/etc/mysql/conf.d \
+-v /Users/didi/docker/mysql/master/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=123456 \
+-d mysql:5.6.34;
+
+docker run --name slave --rm \
+--link master:master \
+-v /Users/didi/docker/mysql/slave/conf:/etc/mysql/conf.d \
+-v /Users/didi/docker/mysql/slave/data:/var/lib/mysql \
+-e MYSQL_ROOT_PASSWORD=123456 \
+-d mysql:5.6.34;
+
+docker run -it --link slave:slave --rm mysql sh -c 'exec mysql -h"slave" -uroot -p"123456"'
+
+docker run -it --link master:master --rm mysql sh -c 'exec mysql -h"master" -uroot -p"123456"'
+
+CHANGE MASTER TO MASTER_HOST='master',
+MASTER_USER='repl', 
+MASTER_PASSWORD='123456',
+MASTER_LOG_FILE='mysql-bin.000005',
+MASTER_LOG_POS=120;
